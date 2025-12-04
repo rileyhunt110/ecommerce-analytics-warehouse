@@ -218,3 +218,63 @@ ORDER BY
     d.month,
     p.category,
     p.subcategory;
+
+-- =========================================================
+-- 7. Product association rules (support, confidence, lift)
+-- =========================================================
+DROP VIEW IF EXISTS vw_product_association_rules CASCADE;
+
+CREATE VIEW vw_product_association_rules AS
+WITH product_order_counts AS (
+    SELECT
+        product_id,
+        COUNT(DISTINCT oi.order_id) AS product_orders
+    FROM fact_order_item oi
+    JOIN fact_order o ON o.order_id = oi.order_id
+    WHERE o.order_status = 'Completed'
+    GROUP BY product_id
+),
+pair_counts AS (
+    SELECT
+        oi1.product_id AS product_id_1,
+        oi2.product_id AS product_id_2,
+        COUNT(DISTINCT oi1.order_id) AS cooccurrence_orders
+    FROM fact_order_item oi1
+    JOIN fact_order_item oi2
+        ON oi1.order_id = oi2.order_id
+       AND oi1.product_id < oi2.product_id
+    JOIN fact_order o
+        ON o.order_id = oi1.order_id
+       AND o.order_status = 'Completed'
+    GROUP BY oi1.product_id, oi2.product_id
+),
+order_counts AS (
+    SELECT COUNT(DISTINCT order_id) AS total_orders
+    FROM fact_order
+    WHERE order_status = 'Completed'
+)
+SELECT
+    pc.product_id_1,
+    dp1.product_name   AS product_name_1,
+    pc.product_id_2,
+    dp2.product_name   AS product_name_2,
+    pc.cooccurrence_orders,
+    -- support: P(A ∧ B)
+    pc.cooccurrence_orders::numeric / oc.total_orders::numeric AS support,
+    -- confidence: P(B | A)
+    pc.cooccurrence_orders::numeric / poc1.product_orders::numeric AS confidence_1_to_2,
+    -- confidence: P(A | B)
+    pc.cooccurrence_orders::numeric / poc2.product_orders::numeric AS confidence_2_to_1,
+    -- lift: P(A ∧ B) / (P(A) * P(B))
+    (pc.cooccurrence_orders::numeric / oc.total_orders::numeric) /
+    ((poc1.product_orders::numeric / oc.total_orders::numeric) *
+     (poc2.product_orders::numeric / oc.total_orders::numeric)) AS lift
+FROM pair_counts pc
+JOIN product_order_counts poc1 ON poc1.product_id = pc.product_id_1
+JOIN product_order_counts poc2 ON poc2.product_id = pc.product_id_2
+JOIN order_counts oc ON TRUE
+JOIN dim_product dp1 ON dp1.product_id = pc.product_id_1
+JOIN dim_product dp2 ON dp2.product_id = pc.product_id_2
+WHERE pc.cooccurrence_orders >= 5
+ORDER BY lift DESC;
+
