@@ -1,6 +1,6 @@
 # ecommerce-analytics-warehouse
 
-# 🛒 E-Commerce Analytics Warehouse
+# E-Commerce Analytics Warehouse
 
 A fully-featured PostgreSQL analytics warehouse designed to simulate the data stack behind a modern e-commerce business.
 
@@ -17,7 +17,7 @@ This repo is built to be a **showcase project for data analysts / data engineers
 
 ---
 
-# 📂 Repository Structure
+# Repository Structure
 
 ``` bash
 ecommerce-analytics-warehouse/
@@ -45,7 +45,7 @@ Copy code
 
 ---
 
-# 🧱 **1. Warehouse Architecture**
+# **1. Warehouse Architecture**
 
 This project uses a **star schema** optimized for analytics:
 
@@ -65,27 +65,16 @@ This project uses a **star schema** optimized for analytics:
 
 ### **ERD (Entity Relationship Diagram)**
 
-dim_customer ----
-
-fact_order ---- fact_order_item ---- dim_product
-dim_channel -----/
-dim_date -----/
-
-yaml
-Copy code
 
 This design supports efficient analytical queries and can scale to millions of facts.
 
 ---
 
-# 🧪 **2. Generating Synthetic Data**
+# **2. Generating Synthetic Data**
 
 The dataset is generated using:
 
 python data/synthetic/generate_data.py
-
-yaml
-Copy code
 
 This script creates:
 
@@ -98,7 +87,7 @@ All data is inserted directly into PostgreSQL via psycopg2.
 
 ---
 
-# 📊 **3. Advanced Analytics Views**
+# **3. Advanced Analytics Views**
 
 The warehouse includes a suite of **business-critical SQL views**:
 
@@ -125,7 +114,7 @@ These views power the notebook analysis layer.
 
 ---
 
-# 📓 **4. Analytics Notebook (analytics.ipynb)**
+# **4. Analytics Notebook (analytics.ipynb)**
 
 The `notebooks/analytics.ipynb` file is a fully polished, end-to-end exploratory data analysis report.
 
@@ -133,7 +122,7 @@ It contains:
 
 ---
 
-## 📈 **4.1 KPI Dashboard**
+## **4.1 KPI Dashboard**
 
 - Total revenue  
 - Order count  
@@ -143,7 +132,7 @@ It contains:
 
 ---
 
-## 📉 **4.2 Revenue Trends**
+## **4.2 Revenue Trends**
 
 - Monthly revenue line chart  
 - Channel contribution bar chart  
@@ -151,7 +140,7 @@ It contains:
 
 ---
 
-## 👥 **4.3 Customer Value Analytics**
+## **4.3 Customer Value Analytics**
 
 ### **RFM Scoring**
 - Recency (days since last order)  
@@ -166,7 +155,7 @@ It contains:
 
 ---
 
-## 🔁 **4.4 Cohort Retention Analysis**
+## **4.4 Cohort Retention Analysis**
 
 - Cohort month definitions  
 - Retention heatmap  
@@ -174,7 +163,7 @@ It contains:
 
 ---
 
-## 🛍️ **4.5 Product Insights**
+## **4.5 Product Insights**
 
 ### **Market Basket Analysis (Association Rules)**
 - Support  
@@ -184,14 +173,14 @@ It contains:
 
 ---
 
-## 📅 **4.6 Seasonality**
+## **4.6 Seasonality**
 
 - Category-by-month heatmap  
 - Identification of seasonal product categories  
 
 ---
 
-## 📈 **4.7 Sales Forecasting**
+## **4.7 Sales Forecasting**
 
 - Monthly revenue aggregation  
 - 3-month moving average  
@@ -199,7 +188,7 @@ It contains:
 
 ---
 
-## 🤖 **4.8 Customer Segmentation (K-Means)**
+## **4.8 Customer Segmentation (K-Means)**
 
 - Normalized RFM features  
 - 4-cluster segmentation  
@@ -208,46 +197,165 @@ It contains:
 
 ---
 
-# ▶️ **5. How to Run the Project**
+5. How to Run the Project
 
-### **1. Clone the repository**
+This section walks through everything needed to install PostgreSQL, set up authentication, generate the synthetic dataset, load the warehouse schema, and run the analytics notebook.
 
+Step 0 — Setting Up a PostgreSQL Password
+
+Before running this project, PostgreSQL must have a valid password for the postgres superuser.
+
+If you don’t know your password or haven’t set one, choose one of the methods below.
+
+Method 1 — Set Password Using psql (Recommended)
+
+Open a terminal (PowerShell, Bash, etc.):
+
+psql -U postgres
+
+
+Inside the PostgreSQL shell:
+
+ALTER USER postgres PASSWORD 'your_password_here';
+\q
+
+
+If you don't know your password and cannot log in, try:
+
+psql -U postgres --no-password
+
+
+If it still fails, use Method 2.
+
+Method 2 — Reset Password Using "trust" Mode (If Locked Out)
+
+Locate PostgreSQL’s configuration directory.
+
+Windows default:
+
+C:\Program Files\PostgreSQL\<version>\data\
+
+
+Open pg_hba.conf as Administrator.
+
+Find:
+
+host    all    all    127.0.0.1/32    scram-sha-256
+
+
+Change to:
+
+host    all    all    127.0.0.1/32    trust
+
+
+Restart PostgreSQL:
+
+Windows:
+
+net stop postgresql-x64-14
+net start postgresql-x64-14
+
+
+Log in without a password:
+
+psql -U postgres
+
+
+Reset the password:
+
+ALTER USER postgres PASSWORD 'your_new_password';
+
+
+Revert pg_hba.conf back to scram-sha-256.
+
+Restart PostgreSQL again.
+
+Method 3 — Set Password Using pgAdmin (GUI Option)
+
+Open pgAdmin
+
+Navigate to:
+
+Servers → PostgreSQL → Login/Group Roles → postgres
+
+
+Right-click → Properties
+
+Go to Definition
+
+Set a new password
+
+Save
+
+Using Your Password in This Project
+
+To avoid hard-coding passwords, this project uses environment variables:
+
+Windows PowerShell:
+setx PG_PASSWORD "your_password_here"
+
+macOS / Linux (.bashrc or .zshrc):
+export PG_PASSWORD="your_password_here"
+
+Notebook Configuration (analytics.ipynb):
+import os
+
+DB_CONFIG = {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "ecommerce_warehouse",
+    "user": "postgres",
+    "password": os.getenv("PG_PASSWORD"),
+}
+
+Step 1 — Clone the Repository
 git clone https://github.com/<your-username>/ecommerce-analytics-warehouse.git
 cd ecommerce-analytics-warehouse
 
-shell
-Copy code
-
-### **2. Create virtual environment & install dependencies**
-
+Step 2 — Create a Virtual Environment & Install Dependencies
 python -m venv .venv
-.venv/Scripts/activate # Windows
+
+
+Windows:
+
+.venv\Scripts\activate
+
+
+macOS/Linux:
+
+source .venv/bin/activate
+
+
+Install dependencies:
+
 pip install -r requirements.txt
 
-pgsql
-Copy code
+Step 3 — Create the PostgreSQL Database
 
-### **3. Create PostgreSQL database**
+Open psql:
 
-Open `psql`:
+psql -U postgres
 
-```sql
+
+Then run:
+
 CREATE DATABASE ecommerce_warehouse;
 \c ecommerce_warehouse
 \i sql/01_schema.sql
 \i sql/02_seed_helpers.sql
 \i sql/03_sample_dimensions.sql
-4. Generate the synthetic dataset
-bash
-Copy code
-python data/synthetic/generate_data.py
-5. Load advanced analytics views
-pgsql
-Copy code
-\i sql/05_advanced_analytics.sql
-6. Open the notebook
-bash
-Copy code
-jupyter notebook notebooks/analytics.ipynb
-Run all cells → all visualizations will render.
 
+Step 4 — Generate Synthetic Data
+python data/synthetic/generate_data.py
+
+
+This populates all fact and dimension tables.
+
+Step 5 — Load Advanced Analytics Views
+\i sql/05_advanced_analytics.sql
+
+Step 6 — Open the Analytics Notebook
+jupyter notebook notebooks/analytics.ipynb
+
+
+Run all cells → all charts and analytics will render.
