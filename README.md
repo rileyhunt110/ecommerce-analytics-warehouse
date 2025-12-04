@@ -201,13 +201,11 @@ It contains:
 
 This section walks through everything needed to install PostgreSQL, set up authentication, generate the synthetic dataset, load the warehouse schema, and run the analytics notebook.
 
-## **Step 0 — Setting Up a PostgreSQL Password**
+## **5.1 Setting Up a PostgreSQL Password**
 
 Before running this project, PostgreSQL must have a valid password for the postgres superuser.
 
 If you don’t know your password or haven’t set one, choose one of the methods below.
-
-Method 1 — Set Password Using psql (Recommended)
 
 Open a terminal (PowerShell, Bash, etc.):
 
@@ -231,7 +229,7 @@ Method 2 — Reset Password Using "trust" Mode (If Locked Out)
 
 Locate PostgreSQL’s configuration directory.
 
-Windows default:
+### Windows default:
 
 C:\Program Files\PostgreSQL\<version>\data\
 
@@ -250,7 +248,7 @@ host    all    all    127.0.0.1/32    trust
 
 Restart PostgreSQL:
 
-Windows:
+### Windows:
 
 net stop postgresql-x64-14
 net start postgresql-x64-14
@@ -291,10 +289,10 @@ Using Your Password in This Project
 
 To avoid hard-coding passwords, this project uses environment variables:
 
-Windows PowerShell:
+### Windows PowerShell:
 setx PG_PASSWORD "your_password_here"
 
-macOS / Linux (.bashrc or .zshrc):
+### macOS / Linux (.bashrc or .zshrc):
 export PG_PASSWORD="your_password_here"
 
 Notebook Configuration (analytics.ipynb):
@@ -308,20 +306,20 @@ DB_CONFIG = {
     "password": os.getenv("PG_PASSWORD"),
 }
 
-## **Step 1 — Clone the Repository**
+## **5.2 Clone the Repository**
 git clone https://github.com/<your-username>/ecommerce-analytics-warehouse.git
 cd ecommerce-analytics-warehouse
 
-## **Step 2 — Create a Virtual Environment & Install Dependencies**
+## **5.3 Create a Virtual Environment & Install Dependencies**
 python -m venv .venv
 
 
-Windows:
+### Windows:
 
 .venv\Scripts\activate
 
 
-macOS/Linux:
+### macOS/Linux:
 
 source .venv/bin/activate
 
@@ -330,7 +328,7 @@ Install dependencies:
 
 pip install -r requirements.txt
 
-## **Step 3 — Create the PostgreSQL Database**
+## **5.4 Create the PostgreSQL Database**
 
 Open psql:
 
@@ -345,16 +343,16 @@ CREATE DATABASE ecommerce_warehouse;
 \i sql/02_seed_helpers.sql
 \i sql/03_sample_dimensions.sql
 
-## **Step 4 — Generate Synthetic Data**
+## **5.5 Generate Synthetic Data**
 python data/synthetic/generate_data.py
 
 
 This populates all fact and dimension tables.
 
-## **Step 5 — Load Advanced Analytics Views**
+## **5.6 Load Advanced Analytics Views**
 \i sql/05_advanced_analytics.sql
 
-## **Step 6 — Open the Analytics Notebook**
+## **5.7 Open the Analytics Notebook**
 jupyter notebook notebooks/analytics.ipynb
 
 
