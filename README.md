@@ -197,11 +197,11 @@ It contains:
 
 ---
 
-5. How to Run the Project
+# **5. How to Run the Project**
 
 This section walks through everything needed to install PostgreSQL, set up authentication, generate the synthetic dataset, load the warehouse schema, and run the analytics notebook.
 
-Step 0 — Setting Up a PostgreSQL Password
+## **Step 0 — Setting Up a PostgreSQL Password**
 
 Before running this project, PostgreSQL must have a valid password for the postgres superuser.
 
@@ -308,11 +308,11 @@ DB_CONFIG = {
     "password": os.getenv("PG_PASSWORD"),
 }
 
-Step 1 — Clone the Repository
+## **Step 1 — Clone the Repository**
 git clone https://github.com/<your-username>/ecommerce-analytics-warehouse.git
 cd ecommerce-analytics-warehouse
 
-Step 2 — Create a Virtual Environment & Install Dependencies
+## **Step 2 — Create a Virtual Environment & Install Dependencies**
 python -m venv .venv
 
 
@@ -330,7 +330,7 @@ Install dependencies:
 
 pip install -r requirements.txt
 
-Step 3 — Create the PostgreSQL Database
+## **Step 3 — Create the PostgreSQL Database**
 
 Open psql:
 
@@ -345,16 +345,16 @@ CREATE DATABASE ecommerce_warehouse;
 \i sql/02_seed_helpers.sql
 \i sql/03_sample_dimensions.sql
 
-Step 4 — Generate Synthetic Data
+## **Step 4 — Generate Synthetic Data**
 python data/synthetic/generate_data.py
 
 
 This populates all fact and dimension tables.
 
-Step 5 — Load Advanced Analytics Views
+## **Step 5 — Load Advanced Analytics Views**
 \i sql/05_advanced_analytics.sql
 
-Step 6 — Open the Analytics Notebook
+## **Step 6 — Open the Analytics Notebook**
 jupyter notebook notebooks/analytics.ipynb
 
 
