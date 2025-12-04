@@ -11,12 +11,9 @@ DROP VIEW IF EXISTS vw_customer_ltv_segments CASCADE;
 DROP VIEW IF EXISTS vw_customer_rfm_scores CASCADE;
 DROP VIEW IF EXISTS vw_customer_rfm_base CASCADE;
 
-
 -- =========================================================
 -- 1. Customer RFM (Recency, Frequency, Monetary) base metrics
 -- =========================================================
--- recency_days is calculated relative to the max date in dim_date,
--- so it stays stable regardless of "today".
 CREATE VIEW vw_customer_rfm_base AS
 WITH max_date AS (
     SELECT MAX(date_actual) AS max_date FROM dim_date
@@ -45,14 +42,9 @@ GROUP BY
     c.last_name,
     c.segment;
 
-
 -- =========================================================
 -- 2. RFM scores (1–5) and combined code/score
 -- =========================================================
--- Higher score is better:
--- - recency_score: 5 = most recent
--- - frequency_score: 5 = most frequent
--- - monetary_score: 5 = highest spend
 CREATE VIEW vw_customer_rfm_scores AS
 SELECT
     b.customer_id,
@@ -73,40 +65,35 @@ SELECT
 FROM (
     SELECT
         b.*,
-        NTILE(5) OVER (ORDER BY recency_days ASC)  AS r_score,
-        NTILE(5) OVER (ORDER BY frequency DESC)    AS f_score,
-        NTILE(5) OVER (ORDER BY monetary_value DESC) AS m_score
+        NTILE(5) OVER (ORDER BY recency_days ASC)        AS r_score,
+        NTILE(5) OVER (ORDER BY frequency DESC)          AS f_score,
+        NTILE(5) OVER (ORDER BY monetary_value DESC)     AS m_score
     FROM vw_customer_rfm_base b
 ) b;
-
 
 -- =========================================================
 -- 3. LTV segments (Bronze/Silver/Gold/Platinum)
 -- =========================================================
--- Based on total_revenue from vw_customer_lifetime_value
 CREATE VIEW vw_customer_ltv_segments AS
+WITH ranked AS (
+    SELECT
+        l.*,
+        NTILE(4) OVER (ORDER BY total_revenue) AS revenue_quartile
+    FROM vw_customer_lifetime_value l
+)
 SELECT
-    l.*,
-    quartile,
-    CASE quartile
+    ranked.*,
+    CASE revenue_quartile
         WHEN 1 THEN 'Bronze'
         WHEN 2 THEN 'Silver'
         WHEN 3 THEN 'Gold'
         WHEN 4 THEN 'Platinum'
     END AS ltv_segment
-FROM (
-    SELECT
-        l.*,
-        NTILE(4) OVER (ORDER BY total_revenue) AS quartile
-    FROM vw_customer_lifetime_value l
-) l;
-
+FROM ranked;
 
 -- =========================================================
 -- 4. Cohort retention: customers grouped by first order month
 -- =========================================================
--- For each cohort_month, shows how many customers are active in each
--- subsequent month and what percent of the cohort that represents.
 CREATE VIEW vw_cohort_retention AS
 WITH first_orders AS (
     SELECT
@@ -164,12 +151,9 @@ ORDER BY
     c.cohort_month,
     c.activity_month;
 
-
 -- =========================================================
 -- 5. Product pairs (basket analysis style)
 -- =========================================================
--- Products that frequently appear together in the same order.
--- We keep only pairs with at least 5 co-occurrence orders.
 CREATE VIEW vw_product_pairs AS
 SELECT
     p1.product_id  AS product_id_1,
@@ -196,7 +180,6 @@ GROUP BY
 HAVING COUNT(DISTINCT oi1.order_id) >= 5
 ORDER BY
     cooccurrence_orders DESC;
-
 
 -- =========================================================
 -- 6. Category margin over time (revenue, cost, profit, margin%)
