@@ -19,6 +19,7 @@ This repo is built to be a **showcase project for data analysts / data engineers
 
 # 📂 Repository Structure
 
+``` bash
 ecommerce-analytics-warehouse/
 │
 ├── sql/
@@ -37,6 +38,7 @@ ecommerce-analytics-warehouse/
 │
 ├── requirements.txt # Python dependencies
 └── README.md # ← You are here
+```
 
 markdown
 Copy code
